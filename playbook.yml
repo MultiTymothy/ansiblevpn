@@ -1,0 +1,70 @@
+---
+- name: setup vpn server
+  hosts: vpn_server
+  tasks:
+  - name: install zip and ntp
+    apt:
+       pkg:
+       - zip
+       - ntpdate
+       - ntp
+       update_cache: yes       
+  - name: stop and update ntpdate
+    systemd:
+       name: ntp
+       state: stopped  
+  - name: update ntp server
+    shell: ntpdate pool.ntp.org
+  - name: start ntp server
+    systemd:
+       name: ntp
+       state: started
+- name: setup ca-center
+  hosts: ca_center
+  tasks:
+  - name: install zip
+    apt:
+       name: zip
+       update_cache: yes
+  - name: add user ca and wget easy rsa 
+    user:
+       name: ca
+       shell: /bin/bash
+       expires: -1
+  - name: cd and wget 
+    shell: cd /home/ca & wget --output-document=/home/ca/master.zip https://github.com/OpenVPN/easy-rsa/archive/master.zip
+    become: yes
+    become_user: ca
+  - name: unzip zip archine
+    shell: mkdir /home/ca/master & unzip -o /home/ca/master.zip -d /home/ca/master/
+    become: yes
+    become_user: ca
+  - name: execute Pulic Key Infrastructure 
+    shell: echo 'yes' | ./home/ca/master/easy-rsa-master/easyrsa3/easyrsa init-pki
+    become: yes
+    become_user: ca
+
+    #  - name: install wireguard
+    # apt:
+    #  name: wireguard
+    #  state: present
+    # update_cache: yes
+      # - name: create server wireguard config
+      # template:
+      # dest: /etc/wireguard/wg0.conf
+      # src: server_wg0.conf.j2
+      # owner: root
+      # group: root
+      # mode: '0600'
+      # - name: enable and persist ip forwwarding
+      # sysctl:
+      #  name: net.ipv4.ip_forward
+      # value: "1"
+      # state: present
+      # systctl_set: yes
+      # reload: yes
+      ##- name: start wireguard and enable on boot
+      # systemd:
+      # name: wg-quick@wg0
+      # enabled: yes
+      #state: started    
