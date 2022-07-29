@@ -1,0 +1,32 @@
+---
+- name: Installing OPENVPN server and get ca certs
+  hosts: openvpn
+  remote_user: root
+
+
+  tasks:
+  - name: update repos and get openvpn
+    apt:
+      pkg:
+      - openvpn
+      - easy-rsa
+      update_cache: yes
+      state: present
+      #  - name: copy rsa script files
+      #shell: cd /etc/openvpn & make-cadir easy-rsa
+
+  - name: check if openss.cnf exists
+    stat: 
+      path: "~/openssl.cnf"
+    register: ssl
+
+  - name: "If openssl.cnf dont exist make link"
+    command: ln -s /etc/openvpn/easy-rsa/openssl-1.0.0.cnf openssl.cnf
+    when: not ssl.stat.exists
+
+  - name: initialize vars script
+    shell: source /root/easy-rsa/vars
+    args:
+      executable: /bin/bash
+
+

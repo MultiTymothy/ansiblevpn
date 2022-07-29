@@ -1,0 +1,2 @@
+[digital]
+openvpn ansible_host=164.92.208.224 ansible_user=root
